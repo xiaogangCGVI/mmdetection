@@ -10,6 +10,8 @@ from mmdet.apis import (get_root_logger, init_dist, set_random_seed,
                         train_detector)
 from mmdet.datasets import build_dataset
 from mmdet.models import build_detector
+import pdb
+
 
 
 def parse_args():
@@ -17,7 +19,7 @@ def parse_args():
     parser.add_argument('config', help='train config file path')
     parser.add_argument('--work_dir', help='the dir to save logs and models')
     parser.add_argument(
-        '--resume_from', help='the checkpoint file to resume from')
+        '--resume_from', default=None, help='the checkpoint file to resume from')
     parser.add_argument(
         '--validate',
         action='store_true',
@@ -48,6 +50,7 @@ def parse_args():
 
 def main():
     args = parse_args()
+
 
     cfg = Config.fromfile(args.config)
     # set cudnn_benchmark

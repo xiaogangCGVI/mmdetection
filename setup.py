@@ -154,6 +154,7 @@ if __name__ == '__main__':
         setup_requires=['pytest-runner', 'cython', 'numpy'],
         tests_require=['pytest', 'xdoctest'],
         install_requires=get_requirements(),
+        # install_requires=None,
         ext_modules=[
             make_cython_ext(
                 name='soft_nms_cpu',

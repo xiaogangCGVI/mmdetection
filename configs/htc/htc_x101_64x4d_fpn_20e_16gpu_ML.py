@@ -2,12 +2,14 @@
 model = dict(
     type='HybridTaskCascade',
     num_stages=3,
-    pretrained='torchvision://resnet50',
+    pretrained='open-mmlab://resnext101_64x4d',
     interleaved=True,
     mask_info_flow=True,
     backbone=dict(
-        type='ResNet',
-        depth=50,
+        type='ResNeXt',
+        depth=101,
+        groups=64,
+        base_width=4,
         num_stages=4,
         out_indices=(0, 1, 2, 3),
         frozen_stages=1,
@@ -41,7 +43,8 @@ model = dict(
             in_channels=256,
             fc_out_channels=1024,
             roi_feat_size=7,
-            num_classes=81,
+            # num_classes=81,
+            num_classes=2,
             target_means=[0., 0., 0., 0.],
             target_stds=[0.1, 0.1, 0.2, 0.2],
             reg_class_agnostic=True,
@@ -54,7 +57,8 @@ model = dict(
             in_channels=256,
             fc_out_channels=1024,
             roi_feat_size=7,
-            num_classes=81,
+            # num_classes=81,
+            num_classes=2,
             target_means=[0., 0., 0., 0.],
             target_stds=[0.05, 0.05, 0.1, 0.1],
             reg_class_agnostic=True,
@@ -67,7 +71,8 @@ model = dict(
             in_channels=256,
             fc_out_channels=1024,
             roi_feat_size=7,
-            num_classes=81,
+            # num_classes=81,
+            num_classes=2,
             target_means=[0., 0., 0., 0.],
             target_stds=[0.033, 0.033, 0.067, 0.067],
             reg_class_agnostic=True,
@@ -75,19 +80,20 @@ model = dict(
                 type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
             loss_bbox=dict(type='SmoothL1Loss', beta=1.0, loss_weight=1.0))
     ],
-    mask_roi_extractor=dict(
-        type='SingleRoIExtractor',
-        roi_layer=dict(type='RoIAlign', out_size=14, sample_num=2),
-        out_channels=256,
-        featmap_strides=[4, 8, 16, 32]),
-    mask_head=dict(
-        type='HTCMaskHead',
-        num_convs=4,
-        in_channels=256,
-        conv_out_channels=256,
-        num_classes=81,
-        loss_mask=dict(
-            type='CrossEntropyLoss', use_mask=True, loss_weight=1.0)))
+    # mask_roi_extractor=dict(
+    #     type='SingleRoIExtractor',
+    #     roi_layer=dict(type='RoIAlign', out_size=14, sample_num=2),
+    #     out_channels=256,
+    #     featmap_strides=[4, 8, 16, 32]),
+    # mask_head=dict(
+    #     type='HTCMaskHead',
+    #     num_convs=4,
+    #     in_channels=256,
+    #     conv_out_channels=256,
+    #     num_classes=81,
+    #     loss_mask=dict(
+    #         type='CrossEntropyLoss', use_mask=True, loss_weight=1.0))
+)
 # model training and testing settings
 train_cfg = dict(
     rpn=dict(
@@ -163,7 +169,8 @@ train_cfg = dict(
             pos_weight=-1,
             debug=False)
     ],
-    stage_loss_weights=[1, 0.5, 0.25])
+    stage_loss_weights=[1, 0.5, 0.25]
+)
 test_cfg = dict(
     rpn=dict(
         nms_across_levels=False,
@@ -173,25 +180,26 @@ test_cfg = dict(
         nms_thr=0.7,
         min_bbox_size=0),
     rcnn=dict(
-        score_thr=0.001,
+        score_thr=0.6,
         nms=dict(type='nms', iou_thr=0.5),
         max_per_img=100,
         mask_thr_binary=0.5),
     keep_all_stages=False)
 # dataset settings
-dataset_type = 'CocoDataset'
-data_root = 'data/coco/'
+dataset_type = 'CabinetDataset'
+data_root = 'data/cabinet_data/'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+    dict(type='LoadAnnotations', with_bbox=True, with_mask=False),
     dict(type='Resize', img_scale=(1333, 800), keep_ratio=True),
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='Pad', size_divisor=32),
     dict(type='DefaultFormatBundle'),
-    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels', 'gt_masks']),
+    # dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels', 'gt_masks']),
+    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),
 ]
 test_pipeline = [
     dict(type='LoadImageFromFile'),
@@ -209,13 +217,12 @@ test_pipeline = [
         ])
 ]
 data = dict(
-    imgs_per_gpu=2,
-    # workers_per_gpu=2,
-    workers_per_gpu=0,
+    imgs_per_gpu=3,
+    workers_per_gpu=3,
     train=dict(
         type=dataset_type,
-        ann_file=data_root + 'annotations/instances_train2017.json',
-        img_prefix=data_root + 'train2017/',
+        ann_file=data_root + 'crop_data.json',
+        img_prefix=data_root + 'croped_data/',
         pipeline=train_pipeline),
     val=dict(
         type=dataset_type,
@@ -236,21 +243,22 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=1.0 / 3,
-    step=[8, 11])
+    step=[20, 25])
 checkpoint_config = dict(interval=1)
 # yapf:disable
 log_config = dict(
     interval=50,
     hooks=[
         dict(type='TextLoggerHook'),
-        # dict(type='TensorboardLoggerHook')
+        dict(type='TensorboardLoggerHook')
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 12
+total_epochs = 30
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/htc_without_semantic_r50_fpn_1x'
-load_from = None
+work_dir = 'work_dirs/htc_x101_64x4d_fpn_20e_ML_2rd'
+load_from = './work_dirs/htc_x101_64x4d_fpn_20e_ML/epoch_10.pth'
+# resume_from = 'checkpoints/faster_rcnn_r50_fpn_1x_20181010-3d1b3351.pth'
 resume_from = None
 workflow = [('train', 1)]

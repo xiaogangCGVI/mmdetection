@@ -6,6 +6,7 @@ import numpy as np
 from albumentations import Compose
 from imagecorruptions import corrupt
 from numpy import random
+import pdb
 
 from mmdet.core.evaluation.bbox_overlaps import bbox_overlaps
 from ..registry import PIPELINES
@@ -127,8 +128,8 @@ class Resize(object):
         img_shape = results['img_shape']
         for key in results.get('bbox_fields', []):
             bboxes = results[key] * results['scale_factor']
-            bboxes[:, 0::2] = np.clip(bboxes[:, 0::2], 0, img_shape[1] - 1)
-            bboxes[:, 1::2] = np.clip(bboxes[:, 1::2], 0, img_shape[0] - 1)
+            bboxes[:, 0::2] = np.clip(bboxes[:, 0::2], 0, img_shape[1] - 1) # W
+            bboxes[:, 1::2] = np.clip(bboxes[:, 1::2], 0, img_shape[0] - 1) # H
             results[key] = bboxes
 
     def _resize_masks(self, results):
