@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
- export KMP_INIT_AT_FORK=FALSE
+export KMP_INIT_AT_FORK=FALSE
 PYTHON=${PYTHON:-"python"}
 
 CONFIG=$1

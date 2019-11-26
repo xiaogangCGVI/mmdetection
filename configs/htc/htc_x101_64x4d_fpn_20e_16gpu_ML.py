@@ -221,8 +221,8 @@ data = dict(
     workers_per_gpu=3,
     train=dict(
         type=dataset_type,
-        ann_file=data_root + 'crop_data.json',
-        img_prefix=data_root + 'croped_data/',
+        ann_file=data_root + 'croped_data_total_v3.json',
+        img_prefix=data_root + 'croped_data_total_v3/',
         pipeline=train_pipeline),
     val=dict(
         type=dataset_type,
@@ -235,7 +235,7 @@ data = dict(
         img_prefix=data_root + 'val2017/',
         pipeline=test_pipeline))
 # optimizer
-optimizer = dict(type='SGD', lr=0.02, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.002, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(
@@ -257,8 +257,8 @@ log_config = dict(
 total_epochs = 30
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = 'work_dirs/htc_x101_64x4d_fpn_20e_ML_2rd'
-load_from = './work_dirs/htc_x101_64x4d_fpn_20e_ML/epoch_10.pth'
-# resume_from = 'checkpoints/faster_rcnn_r50_fpn_1x_20181010-3d1b3351.pth'
+work_dir = 'work_dirs/htc_x101_64x4d_fpn_20e_ML_3rd'
+# load_from = './work_dirs/htc_x101_64x4d_fpn_20e_ML/epoch_10.pth'
+load_from = 'checkpoints/htc_x101_64x4d_fpn_20e_20190408-497f2561.pth'
 resume_from = None
 workflow = [('train', 1)]
